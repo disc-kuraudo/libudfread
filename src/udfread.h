@@ -115,10 +115,28 @@ enum {
     UDF_DT_REG,
 };
 
+/* Timestamp */
+struct udf_ts {
+    uint16_t type_tz;
+    int16_t  year;
+    uint8_t  month;
+    uint8_t  day;
+    uint8_t  hour;
+    uint8_t  minute;
+    uint8_t  second;
+    uint8_t  csec;
+    uint8_t  msec_h;
+    uint8_t  msec;
+};
+
+
 /* Directory stream entry */
 struct udfread_dirent {
     unsigned int  d_type;    /* UDF_DT_* */
     const char   *d_name;    /* MUTF-8 */
+    struct udf_ts ts_atime;
+    struct udf_ts ts_mtime;
+    struct udf_ts ts_attime;
 };
 
 /* opaque handle for directory stream */
@@ -301,6 +319,16 @@ int64_t udfread_file_tell (UDFFILE *);
  */
 int64_t udfread_file_seek (UDFFILE *, int64_t pos, int whence);
 
+/**
+ *  Output a timestamp string from struct udf_ts conforming to ISO 8601:
+ *  YYYY-MM-DD hh:mm:ss ±hhmm
+ *
+ *  "null" is written to ts_str for an invalid UDF timestamp that is zeroed out.
+ *
+ * @param ts  udf_ts struct
+ * @param ts_str  output timestamp string
+ */
+void udfread_timestamp_string(struct udf_ts ts, char *ts_str);
 
 #ifdef __cplusplus
 } /* extern "C" */

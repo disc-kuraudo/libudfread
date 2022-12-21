@@ -217,11 +217,28 @@ enum {
     ECMA_FT_SYMLINK         = 12,
 };
 
+struct timestamp {
+    uint16_t type_tz;
+    int16_t  year;
+    uint8_t  month;
+    uint8_t  day;
+    uint8_t  hour;
+    uint8_t  minute;
+    uint8_t  second;
+    uint8_t  csec;
+    uint8_t  msec_h;
+    uint8_t  msec;
+};
+
 struct file_entry {
     uint64_t       length;         /* in bytes */
     uint8_t        file_type;      /* ECMA_FT_* */
     uint8_t        content_inline; /* 1 if file data is embedded in file entry */
     uint8_t        ad_type;        /* from icb_flags; used when parsing allocation extents */
+
+    struct timestamp atime;
+    struct timestamp mtime;
+    struct timestamp attime;
 
     union {
         /* "normal" file */

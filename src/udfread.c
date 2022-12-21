@@ -1317,6 +1317,8 @@ size_t udfread_get_volume_set_id (udfread *udf, void *buffer, size_t size)
 
 struct udfread_dir {
     udfread              *udf;
+    struct file_entry    *fe;
+
     struct udf_dir       *dir;
     uint32_t              current_file;
 };
@@ -1375,6 +1377,7 @@ UDFDIR *udfread_opendir_at(UDFDIR *p, const char *name)
 struct udfread_dirent *udfread_readdir(UDFDIR *p, struct udfread_dirent *entry)
 {
     const struct udf_file_identifier *fi;
+    struct file_entry *fe;
 
     if (!p || !entry || !p->dir) {
         return NULL;
@@ -1387,6 +1390,12 @@ struct udfread_dirent *udfread_readdir(UDFDIR *p, struct udfread_dirent *entry)
     fi = &p->dir->files[p->current_file];
 
     entry->d_name = fi->filename;
+
+    fe = _read_file_entry(p->udf, &fi->icb);
+    entry->ts_atime = *(struct udf_ts*)&fe->atime;
+    entry->ts_mtime = *(struct udf_ts*)&fe->mtime;
+    entry->ts_attime = *(struct udf_ts*)&fe->attime;
+    free_file_entry(&fe);
 
     if (fi->characteristic & CHAR_FLAG_PARENT) {
         entry->d_type = UDF_DT_DIR;
@@ -1783,4 +1792,37 @@ int64_t udfread_file_seek(UDFFILE *p, int64_t pos, int whence)
     }
 
     return -1;
+}
+
+void udfread_timestamp_string(struct udf_ts ts, char *ts_str) {
+	struct udf_ts ts_zero = {0};
+    union {
+        uint16_t offset_raw;
+        int16_t  offset;
+    } tz;
+    char  ts_fmt_pos[] = "%04i-%02i-%02i %02i:%02i:%02i +%02i%02i";
+    char  ts_fmt_neg[] = "%04i-%02i-%02i %02i:%02i:%02i %03i%02i";
+    char *ts_fmt;
+
+    if (!memcmp(&ts, &ts_zero, sizeof(struct udf_ts))) {
+        sprintf(ts_str, "null");
+        return;
+    }
+
+    tz.offset_raw = ts.type_tz;
+    tz.offset_raw &= ts.type_tz&0x0FFF;
+    if (ts.type_tz&0x0800) {
+        tz.offset_raw |= 0xF000;
+    }
+
+    if (tz.offset >= 0) {
+        ts_fmt = ts_fmt_pos;
+    } else {
+        ts_fmt = ts_fmt_neg;
+    }
+
+    sprintf(ts_str, ts_fmt,
+            ts.year, ts.month, ts.day,
+            ts.hour, ts.minute, ts.second,
+            tz.offset/60, abs(tz.offset%60));
 }

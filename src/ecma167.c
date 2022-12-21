@@ -324,6 +324,10 @@ static struct file_entry *_decode_file_entry(const uint8_t *p, size_t size,
     fe->length    = _get_u64(p + 56);
     fe->ad_type   = tag.flags & 7;
 
+    fe->atime     = *(const struct timestamp*)(p + 72);
+    fe->mtime     = *(const struct timestamp*)(p + 84);
+    fe->attime    = *(const struct timestamp*)(p + 96);
+
     if (content_inline) {
         /* data of small files can be embedded in file entry */
         /* copy embedded file data */
