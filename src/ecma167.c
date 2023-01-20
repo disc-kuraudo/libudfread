@@ -328,6 +328,16 @@ static struct file_entry *_decode_file_entry(const uint8_t *p, size_t size,
     fe->mtime     = *(const struct timestamp*)(p + 84);
     fe->attime    = *(const struct timestamp*)(p + 96);
 
+    // For reasons unknown, on HD-DVD and BD media with UDF v2.50(+),
+    // these timestamps are found from offset 80
+    // Check if type for atime is 1 or mtime year has sane values, otherwise go for offset 80
+    // TODO: Find out why and properly handle this
+    if (((fe->atime.type_tz & 0xF000) >> 12) != 1 || fe->mtime.year < 1970 || fe->mtime.year > 2100) {
+        fe->atime     = *(const struct timestamp*)(p + 80);
+        fe->mtime     = *(const struct timestamp*)(p + 92);
+        fe->attime    = *(const struct timestamp*)(p + 104);
+    }
+
     if (content_inline) {
         /* data of small files can be embedded in file entry */
         /* copy embedded file data */
