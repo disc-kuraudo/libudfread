@@ -5,9 +5,9 @@ SET_INCLUDES = -I$(top_srcdir) -I$(top_srcdir)/src -Isrc
 
 AM_CFLAGS = $(SET_FEATURES) $(SET_INCLUDES)
 
-lib_LTLIBRARIES = libudfread.la
+lib_LTLIBRARIES = libudfread-dk.la
 
-libudfread_la_SOURCES = \
+libudfread_dk_la_SOURCES = \
 	src/default_blockinput.h \
 	src/default_blockinput.c \
 	src/ecma167.h \
@@ -15,7 +15,7 @@ libudfread_la_SOURCES = \
 	src/udfread.c \
 	src/udfread-version.c
 
-libudfread_la_LDFLAGS = -version-info $(UDFREAD_LTVERSION) -export-symbols-regex "(^udfread_.*)"
+libudfread_dk_la_LDFLAGS = -version-info $(UDFREAD_LTVERSION) -export-symbols-regex "(^udfread_.*)"
 
 pkgincludedir = $(includedir)/udfread
 pkginclude_HEADERS = \
@@ -24,14 +24,14 @@ pkginclude_HEADERS = \
 	src/blockinput.h
 
 pkgconfigdir = $(libdir)/pkgconfig
-pkgconfig_DATA = src/libudfread.pc
+pkgconfig_DATA = src/libudfread-dk.pc
 
 noinst_PROGRAMS = \
 	udfls \
 	udfcat
 
 udfls_SOURCES = examples/udfls.c
-udfls_LDADD = libudfread.la
+udfls_LDADD = libudfread-dk.la
 
 udfcat_SOURCES = examples/udfcat.c
-udfcat_LDADD = libudfread.la
+udfcat_LDADD = libudfread-dk.la

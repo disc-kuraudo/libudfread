@@ -3,9 +3,9 @@ exec_prefix=@exec_prefix@
 libdir=@libdir@
 includedir=@includedir@
 
-Name: libudfread
+Name: libudfread-dk
 Description: UDF filesystem access library
 Version: @VERSION@
 
 Cflags: -I${includedir}
-Libs: -L${libdir} -ludfread
+Libs: -L${libdir} -ludfread-dk
