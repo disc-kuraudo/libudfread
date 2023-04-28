@@ -952,12 +952,12 @@ static int _parse_dir(const uint8_t *data, uint32_t length, struct udf_dir *dir)
         }
         p += used;
 
-        if (fid.characteristic & CHAR_FLAG_PARENT) {
+        /*if (fid.characteristic & CHAR_FLAG_PARENT) {
             continue;
         }
         if (fid.filename_len < 1) {
             continue;
-        }
+        }*/
 
         dir->files[dir->num_entries].characteristic = fid.characteristic;
         dir->files[dir->num_entries].icb = fid.icb;
@@ -971,11 +971,11 @@ static int _parse_dir(const uint8_t *data, uint32_t length, struct udf_dir *dir)
          * Not strictly compilant (?), \0 is allowed in
          * ECMA167 file identifier.
          */
-        if (!dir->files[dir->num_entries].filename[0]) {
+        /*if (!dir->files[dir->num_entries].filename[0]) {
             udf_error("skipping empty file identifier\n");
             free(dir->files[dir->num_entries].filename);
             continue;
-        }
+        }*/
 
         dir->num_entries++;
     }
@@ -1392,9 +1392,14 @@ struct udfread_dirent *udfread_readdir(UDFDIR *p, struct udfread_dirent *entry)
     entry->d_name = fi->filename;
 
     fe = _read_file_entry(p->udf, &fi->icb);
+
     entry->ts_atime = *(struct udf_ts*)&fe->atime;
     entry->ts_mtime = *(struct udf_ts*)&fe->mtime;
     entry->ts_attime = *(struct udf_ts*)&fe->attime;
+
+    entry->num_ad = fe->u.ads.num_ad;
+    memcpy(entry->ad, fe->u.ads.ad, fe->u.ads.num_ad*sizeof(struct allocation_descriptor));
+
     free_file_entry(&fe);
 
     if (fi->characteristic & CHAR_FLAG_PARENT) {

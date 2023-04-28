@@ -129,14 +129,25 @@ struct udf_ts {
     uint8_t  msec;
 };
 
+struct allocation_descriptor {
+    uint32_t lba;    /* start block, relative to partition start */
+    uint32_t length; /* in bytes */
+    uint16_t partition;
+    uint8_t  extent_type;
+};
+
 
 /* Directory stream entry */
 struct udfread_dirent {
     unsigned int  d_type;    /* UDF_DT_* */
     const char   *d_name;    /* MUTF-8 */
+
     struct udf_ts ts_atime;
     struct udf_ts ts_mtime;
     struct udf_ts ts_attime;
+
+    int num_ad;
+    struct allocation_descriptor ad[4096];
 };
 
 /* opaque handle for directory stream */
