@@ -1800,33 +1800,26 @@ int64_t udfread_file_seek(UDFFILE *p, int64_t pos, int whence)
 }
 
 void udfread_timestamp_string(struct udf_ts ts, char *ts_str) {
-	struct udf_ts ts_zero = {0};
     union {
         uint16_t offset_raw;
         int16_t  offset;
     } tz;
-    char  ts_fmt_pos[] = "%04i-%02i-%02i %02i:%02i:%02i +%02i%02i";
-    char  ts_fmt_neg[] = "%04i-%02i-%02i %02i:%02i:%02i %03i%02i";
-    char *ts_fmt;
+    char ts_fmt_pos[] = "%04i-%02i-%02i %02i:%02i:%02i +%02i%02i";
+    char ts_fmt_neg[] = "%04i-%02i-%02i %02i:%02i:%02i %03i%02i";
 
-    if (!memcmp(&ts, &ts_zero, sizeof(struct udf_ts))) {
-        sprintf(ts_str, "null");
-        return;
+    if (ts.type_tz >> 12 == 1) {
+        tz.offset_raw = ts.type_tz;
+        tz.offset_raw &= ts.type_tz&0x0FFF;
+        if (ts.type_tz&0x0800) {
+            tz.offset_raw |= 0xF000;
+        }
+        if (tz.offset == -2047) // unspecified timezone offset
+            tz.offset = 0;
+    } else { // unspecified timezone offset
+        tz.offset = 0;
     }
 
-    tz.offset_raw = ts.type_tz;
-    tz.offset_raw &= ts.type_tz&0x0FFF;
-    if (ts.type_tz&0x0800) {
-        tz.offset_raw |= 0xF000;
-    }
-
-    if (tz.offset >= 0) {
-        ts_fmt = ts_fmt_pos;
-    } else {
-        ts_fmt = ts_fmt_neg;
-    }
-
-    sprintf(ts_str, ts_fmt,
+    sprintf(ts_str, tz.offset >= 0 ? ts_fmt_pos : ts_fmt_neg,
             ts.year, ts.month, ts.day,
             ts.hour, ts.minute, ts.second,
             tz.offset/60, abs(tz.offset%60));
